@@ -54,7 +54,8 @@ The store wants to keep customer addresses. Propose two architectures for the CU
 **HINT:** search type 1 vs type 2 slowly changing dimensions. 
 
 ```
-Your answer...
+1.Considering Type 1, old data will be overwritten by new data, and no history will be kept. For example, if the customer's address was 'address1, street1' and the new address is 'address2, street2,' the address column in the customer table will be replaced with the new address, 'address2, street2.' Note that this approach is suitable for data that we won't need to refer to in reports, as the history won't be preserved, which could affect report accuracy.
+2. Considering Type 2, a new row will be added to keep the history of changed data. Note that, in this case, all other columns' data will remain the same, and only the data related to the address will be changed in the newly addedd row. We can also consider adding a column called 'current_flag' to indicate whether the related row data is current (Y) or not (N).  
 ```
 
 ***

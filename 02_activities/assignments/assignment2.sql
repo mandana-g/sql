@@ -80,12 +80,7 @@ FROM product;
 
 /* 2. Filter the query to show any product_size value that contain a number with REGEXP. */
 
-SELECT *,
-CASE  
-	WHEN trim(substr(product_name,INSTR(product_name,'-')+1)) like '%Organic' THEN "Organic"
-	WHEN trim(substr(product_name,INSTR(product_name,'-')+1)) like '%Jar' THEN "Jar"
-	ELSE NULL
-END as description	
+SELECT *
 FROM product
 WHERE product_size REGEXP '\d';
 
@@ -139,7 +134,7 @@ Think a bit about the row counts: how many distinct vendors, product names are t
 How many customers are there (y). 
 Before your final group by you should have the product of those two queries (x*y).  */
 
-SELECT DISTINCT v.vendor_name, p.product_name, sum(5 * vi.original_price) * COUNT(c.customer_id) AS total_revenue
+SELECT DISTINCT v.vendor_name, p.product_name, sum(5 * vi.original_price) AS total_revenue
 FROM vendor_inventory as vi
 LEFT JOIN product as p ON vi.product_id = p. product_id
 LEFT JOIN vendor as v ON vi.vendor_id = v.vendor_id
@@ -170,7 +165,12 @@ VALUES(24,'Apple Pie', 'medium', 3, 'unit',CURRENT_TIMESTAMP);
 HINT: If you don't specify a WHERE clause, you are going to have a bad time.*/
 
 DELETE FROM product_units
-WHERE product_id = 24;
+WHERE product_id = 24
+AND snapshot_timestamp = (
+    SELECT MIN(snapshot_timestamp)
+    FROM product_units
+    WHERE product_id = 24
+);
 
 -- UPDATE
 /* 1.We want to add the current_quantity to the product_units table. 
@@ -193,9 +193,10 @@ UPDATE product_units
 SET current_quantity= coalesce(
 	(SELECT quantity
 	FROM vendor_inventory
-	WHERE vendor_inventory.product_id = product_unit.product_id
+	WHERE vendor_inventory.product_id = product_units.product_id
 	ORDER by vendor_inventory.market_date DESC
 	LIMIT 1),0)
-WHERE product_unit.product_id IN (SELECT product_id FROM vendor_inventory);	
+WHERE product_units.product_id IN (SELECT product_id FROM vendor_inventory);	
+
 
 
